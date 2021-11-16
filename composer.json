@@ -1,0 +1,21 @@
+{
+    "name": "duamaleek/unzip-to-s3",
+    "description": "unzip the file and upload to S3",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Duamaleek\\UnzipToS3\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "2maleek",
+            "email": "222malikibrahim@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "league/flysystem-aws-s3-v3": "^1.0"
+    }
+}
