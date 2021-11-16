@@ -24,27 +24,28 @@ class Unzip
     {
         try {
             $imageFileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $prefix_dir = Str::uuid();
             $failed = 0;
             $success = 0;
-            if(!File::isDirectory(storage_path('temp_unzip_to_s3/files'))){
-                File::makeDirectory(storage_path('temp_unzip_to_s3/files'), 0777, true, true);
+            if(!File::isDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files'))){
+                File::makeDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files'), 0777, true, true);
             }
     
             // save to storage
-            $file->move(storage_path('temp_unzip_to_s3/files/'), $imageFileName);
+            $file->move(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'), $imageFileName);
 
             $zip = new ZipArchive;
-            if ($zip->open(storage_path('temp_unzip_to_s3/files/'). $imageFileName) === TRUE) {
-                if(!File::isDirectory(storage_path('temp_unzip_to_s3/images'))){
-                    File::makeDirectory(storage_path('temp_unzip_to_s3/images'), 0777, true, true);
+            if ($zip->open(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName) === TRUE) {
+                if(!File::isDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images'))){
+                    File::makeDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images'), 0777, true, true);
                 }
-                $zip->extractTo(storage_path('temp_unzip_to_s3/images/'));
+                $zip->extractTo(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images/'));
 
                 // unzip and upload to s3
                 $za = new ZipArchive(); 
-                $za->open(storage_path('temp_unzip_to_s3/files/'). $imageFileName); 
+                $za->open(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName); 
 
-                $di = new \RecursiveDirectoryIterator(storage_path('temp_unzip_to_s3/images'));
+                $di = new \RecursiveDirectoryIterator(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images'));
                 foreach (new \RecursiveIteratorIterator($di) as $filename => $file) {
                     if(!is_dir($file)){
                         $info = explode("/", $filename);
@@ -53,8 +54,7 @@ class Unzip
                         if($path !== ""){
                             $only_filename = $path . $only_filename;
                         }
-                        // echo $only_filename . ' - ' . $file->getSize() . ' bytes <br/>';
-                        if(Storage::disk('s3')->put($only_filename, $file, 'public')){
+                        if(Storage::disk('s3')->put($only_filename, file_get_contents($file), 'public')){
                             $success++;
                         }else{
                             $failed++;
@@ -62,11 +62,10 @@ class Unzip
 
                     }else{
                     }
-                    // echo $filename . ' - ' . $file->getSize() . ' bytes <br/>';
                     File::delete($filename);
                 }
-                File::delete(storage_path('temp_unzip_to_s3/files/'). $imageFileName);
-                
+                File::delete(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName);
+                File::deleteDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir));
                 
                 $zip->close();
                 $response = [
@@ -76,7 +75,7 @@ class Unzip
                     'failed' => $failed,
                 ];
             } else {
-                File::delete(storage_path('temp_unzip_to_s3/files/'). $imageFileName);
+                File::delete(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName);
                 $response = [
                     'status' => false,
                     'message' => "Failed to open zip",
@@ -104,25 +103,25 @@ class Unzip
             $imageFileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $failed = 0;
             $success = 0;
-            if(!File::isDirectory(storage_path('temp_unzip_to_s3/files'))){
-                File::makeDirectory(storage_path('temp_unzip_to_s3/files'), 0777, true, true);
+            if(!File::isDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files'))){
+                File::makeDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files'), 0777, true, true);
             }
     
             // save to storage
-            $file->move(storage_path('temp_unzip_to_s3/files/'), $imageFileName);
+            $file->move(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'), $imageFileName);
 
             $zip = new ZipArchive;
-            if ($zip->open(storage_path('temp_unzip_to_s3/files/'). $imageFileName) === TRUE) {
-                if(!File::isDirectory(storage_path('temp_unzip_to_s3/images'))){
-                    File::makeDirectory(storage_path('temp_unzip_to_s3/images'), 0777, true, true);
+            if ($zip->open(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName) === TRUE) {
+                if(!File::isDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images'))){
+                    File::makeDirectory(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images'), 0777, true, true);
                 }
-                $zip->extractTo(storage_path('temp_unzip_to_s3/images/'));
+                $zip->extractTo(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images/'));
 
                 // unzip and upload to s3
                 $za = new ZipArchive(); 
-                $za->open(storage_path('temp_unzip_to_s3/files/'). $imageFileName); 
+                $za->open(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName); 
 
-                $di = new \RecursiveDirectoryIterator(storage_path('temp_unzip_to_s3/images'));
+                $di = new \RecursiveDirectoryIterator(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/images'));
                 foreach (new \RecursiveIteratorIterator($di) as $filename => $file) {
                     if(!is_dir($file)){
                         $info = explode("/", $filename);
@@ -142,7 +141,7 @@ class Unzip
                     // echo $filename . ' - ' . $file->getSize() . ' bytes <br/>';
                     File::delete($filename);
                 }
-                File::delete(storage_path('temp_unzip_to_s3/files/'). $imageFileName);
+                File::delete(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName);
                 
                 
                 $zip->close();
@@ -153,7 +152,7 @@ class Unzip
                     'failed' => $failed,
                 ];
             } else {
-                File::delete(storage_path('temp_unzip_to_s3/files/'). $imageFileName);
+                File::delete(storage_path('temp_unzip_to_s3/'. $prefix_dir .'/files/'). $imageFileName);
                 $response = [
                     'status' => false,
                     'message' => "Failed to open zip",
