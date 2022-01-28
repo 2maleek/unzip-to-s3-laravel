@@ -20,7 +20,7 @@ class Unzip
      * @param array $data
      * @return integer
      */
-    public static function uploadIntoOnePath($file, $path="")
+    public static function uploadIntoOnePath($file, $path="", $disk="s3")
     {
         try {
             $imageFileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
@@ -54,7 +54,7 @@ class Unzip
                         if($path !== ""){
                             $only_filename = $path . $only_filename;
                         }
-                        if(Storage::disk('s3')->put($only_filename, file_get_contents($file), 'public')){
+                        if(Storage::disk($disk)->put($only_filename, file_get_contents($file), 'public')){
                             $success++;
                         }else{
                             $failed++;
@@ -97,7 +97,7 @@ class Unzip
         }
     }
     
-    public static function upload($file, $path="")
+    public static function upload($file, $path="", $disk="s3")
     {
         try {
             $imageFileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
@@ -130,7 +130,7 @@ class Unzip
                             $filename = $path . $filename;
                         }
                         // echo $filename . ' - ' . $file->getSize() . ' bytes <br/>';
-                        if(Storage::disk('s3')->put($filename, $file, 'public')){
+                        if(Storage::disk($disk)->put($filename, $file, 'public')){
                             $success++;
                         }else{
                             $failed++;
